@@ -25,7 +25,7 @@ const ScreenLayout: React.FC<ScreenLayoutProps> = ({ response, children }) => {
 
       <main className="flex-grow bg-gray-800/50 rounded-2xl shadow-inner p-6 flex flex-col justify-between overflow-y-auto">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-bold text-white mb-6">{on_screen}</h1>
+          <h1 className="font-display text-3xl sm:text-4xl font-bold text-white mb-6">{on_screen}</h1>
           {children}
         </div>
       </main>

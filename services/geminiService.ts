@@ -1,4 +1,4 @@
-import { GoogleGenAI, Type } from "@google/genai";
+﻿import { GoogleGenAI, Type } from "@google/genai";
 import type { AIResponse, Oeuvre } from "../types";
 import { catalogue } from "../data/catalogue";
 
@@ -144,7 +144,7 @@ ${JSON.stringify(catalogue, null, 2)}
     // @google/genai-sdk-guideline:
     // Access the `.text` property on the GenerateContentResponse object to get the generated text content.
     const text = response.text;
-    
+
     if (!text) {
         throw new Error("La réponse de l'IA est vide.");
     }
@@ -175,6 +175,19 @@ const buildFallbackResponse = (userInput: string): AIResponse => {
   };
 
   const normalized = userInput.toLowerCase();
+
+  if (normalized.includes("accueil") || normalized.includes("🏠")) {
+    return accueil;
+  }
+
+  if ((normalized.includes("oeuvre") || normalized.includes("œuvre")) && (normalized.includes("termin") || normalized.includes("fin"))) {
+    return {
+      screen: "souvenirs",
+      voice: "Bravo! Ton œuvre est enregistrée. La voici sur le mur des souvenirs.",
+      on_screen: "Mur de souvenirs",
+      chips: ["Créer une autre œuvre", "Explorer la galerie", "🏠 Accueil"],
+    };
+  }
 
   if (normalized.includes("galerie") || normalized.includes("œuvre") || normalized.includes("oeuvre")) {
     return {

@@ -30,13 +30,13 @@ const AtelierHubScreen: React.FC<{ response: AIResponse }> = ({ response }) => {
           title="Création Style Vitrail"
           description="Joue avec les formes géométriques, la lumière et les couleurs vives pour construire comme avec du verre."
           imageUrl="https://images.unsplash.com/photo-1579237096682-35a165f45812?q=80&w=800&auto=format&fit=crop"
-          onClick={() => sendMessage("Je veux créer en style vitrail")}
+          onClick={() => sendMessage("Je choisis le style vitrail pour créer.")}
         />
         <StyleCard 
           title="Création Style Peinture"
           description="Exprime-toi avec des gestes amples, des textures et des contrastes forts, comme avec un couteau à peindre."
           imageUrl="https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8?q=80&w=800&auto=format&fit=crop"
-          onClick={() => sendMessage("Je veux créer en style peinture")}
+          onClick={() => sendMessage("Je choisis le style peinture pour créer.")}
         />
       </div>
     </ScreenLayout>

@@ -9,7 +9,7 @@ const AppContent: React.FC = () => {
   const { isLoading, error, aiResponse, sendMessage } = useAppContext();
 
   return (
-    <div className="bg-gray-900 text-white w-screen h-screen flex flex-col items-center justify-center p-4 overflow-hidden">
+    <div className="bg-[#0b0f14] text-white w-screen min-h-screen flex flex-col items-center justify-center p-4 overflow-hidden">
       <div className="absolute top-4 left-4 z-10">
         <MarcelleAvatar />
       </div>

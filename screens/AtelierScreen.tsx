@@ -182,9 +182,13 @@ const AtelierScreen: React.FC<{ response: AIResponse }> = ({ response }) => {
     paintingRef.current = null;
   };
 
-  const canvasContainerClass = mode === 'vitrail' ? 'bg-cover bg-center' : 'bg-white';
-  const canvasContainerStyle = mode === 'vitrail'
-    ? { backgroundImage: "url('https://images.unsplash.com/photo-1467269204594-9661b134dd2b?q=80&w=1600&auto=format&fit=crop')" }
+  const isVitrail = mode === 'vitrail';
+  const canvasContainerClass = isVitrail ? 'bg-[#121624]' : 'bg-white';
+  const canvasContainerStyle = isVitrail
+    ? {
+        backgroundImage:
+          'linear-gradient(135deg, rgba(33,40,63,0.95), rgba(14,17,28,0.98))',
+      }
     : {};
 
   return (
@@ -266,17 +270,11 @@ const AtelierScreen: React.FC<{ response: AIResponse }> = ({ response }) => {
         </div>
 
         <div className={`w-full md:w-2/3 rounded-lg overflow-hidden relative ${canvasContainerClass}`} style={canvasContainerStyle}>
-          {mode === 'vitrail' && (
-            <div
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                backgroundImage:
-                  'linear-gradient(90deg, rgba(0,0,0,0.55) 0 2px, transparent 2px 48px), linear-gradient(0deg, rgba(0,0,0,0.55) 0 2px, transparent 2px 48px)',
-                backgroundSize: '48px 48px',
-                mixBlendMode: 'multiply',
-                opacity: 0.6,
-              }}
-            />
+          {isVitrail && (
+            <>
+              <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.08),transparent_55%)]" />
+              <div className="absolute inset-0 pointer-events-none ring-1 ring-white/10" />
+            </>
           )}
           <svg
             ref={svgRef}
@@ -301,9 +299,10 @@ const AtelierScreen: React.FC<{ response: AIResponse }> = ({ response }) => {
                     width={el.width}
                     height={el.height}
                     fill={el.fill}
-                    fillOpacity={mode === 'vitrail' ? 0.55 : 0.9}
-                    stroke={isSelected ? '#FACC15' : '#0f172a'}
-                    strokeWidth={mode === 'vitrail' ? 0.9 : 0.5}
+                    fillOpacity={isVitrail ? 0.65 : 0.9}
+                    stroke={isSelected ? '#FACC15' : '#111827'}
+                    strokeWidth={isVitrail ? 0.8 : 0.5}
+                    style={isVitrail ? { filter: 'drop-shadow(0 8px 12px rgba(0,0,0,0.45))' } : undefined}
                     className="cursor-move"
                   />
                 );
@@ -318,9 +317,10 @@ const AtelierScreen: React.FC<{ response: AIResponse }> = ({ response }) => {
                     cy={el.y + el.height / 2}
                     r={el.width / 2}
                     fill={el.fill}
-                    fillOpacity={mode === 'vitrail' ? 0.55 : 0.9}
-                    stroke={isSelected ? '#FACC15' : '#0f172a'}
-                    strokeWidth={mode === 'vitrail' ? 0.9 : 0.5}
+                    fillOpacity={isVitrail ? 0.65 : 0.9}
+                    stroke={isSelected ? '#FACC15' : '#111827'}
+                    strokeWidth={isVitrail ? 0.8 : 0.5}
+                    style={isVitrail ? { filter: 'drop-shadow(0 8px 12px rgba(0,0,0,0.45))' } : undefined}
                     className="cursor-move"
                   />
                 );

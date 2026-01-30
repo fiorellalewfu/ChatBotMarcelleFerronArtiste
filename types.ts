@@ -1,5 +1,16 @@
-
-export type ScreenName = "accueil" | "galerie" | "detail_oeuvre" | "chat" | "citations" | "atelier_hub" | "jeu" | "atelier" | "resultat" | "heritage" | "souvenirs" | "projection";
+export type ScreenName =
+  | "accueil"
+  | "galerie"
+  | "detail_oeuvre"
+  | "chat"
+  | "citations"
+  | "atelier_hub"
+  | "jeu"
+  | "atelier"
+  | "resultat"
+  | "heritage"
+  | "souvenirs"
+  | "projection";
 
 export interface Oeuvre {
   id: string;

@@ -15,6 +15,16 @@ View your app in AI Studio: https://ai.studio/apps/drive/1R0bA4mbIwGoNad_9n8ttfz
 
 1. Install dependencies:
    `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+2. Copy `.env.example` to `.env.local` and set `GEMINI_API_KEY`.
 3. Run the app:
    `npm run dev`
+
+## Architecture (résumé)
+- `App.tsx` : composition racine + provider
+- `contexts/` : état global (charge, erreurs, historique, créations)
+- `services/` : appel Gemini + fallback offline
+- `screens/` : écrans du parcours (galerie, atelier, héritage, souvenirs)
+- `components/` : UI réutilisable, layout, chips, CTA
+- `data/` : catalogue d’œuvres (source unique pour l’IA)
+
+Voir `docs/ARCHITECTURE.md` pour la répartition d’équipe.

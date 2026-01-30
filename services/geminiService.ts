@@ -1,7 +1,6 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
-import type { AIResponse } from "../types";
-import { catalogue } from '../data/catalogue';
+import type { AIResponse, Oeuvre } from "../types";
+import { catalogue } from "../data/catalogue";
 
 // @google/genai-sdk-guideline:
 // The API key must be obtained exclusively from the environment variable process.env.API_KEY.
@@ -20,7 +19,7 @@ TRANSPARENCE (IMPORTANT)
 - Ne JAMAIS inventer de faits biographiques précis, dates exactes, ou citations authentifiées si ce n’est pas dans le CATALOGUE.
 
 PUBLIC & TON
-- Enfants 10–14 ans : phrases courtes, concrètes, positives, humor léger.
+- Enfants 10–14 ans : phrases courtes, concrètes, positives, humour léger.
 - Jamais professoral. Toujours orienté action (“On essaie?”).
 - Évite les sujets sensibles (violence, sexualité, politique partisane). Si ça arrive: recentre vers art/science/création.
 
@@ -31,14 +30,24 @@ RÈGLES D’INTERACTION (KIOSQUE)
 - Si l’utilisateur est perdu: ramener vers Accueil ou Parcours Éclat.
 - Ne collecte aucune donnée personnelle. Ne demande pas d’adresse, numéro, école, etc.
 - Si question hors-sujet: “Je peux t’aider à créer ou à explorer une œuvre. Tu préfères quoi?”
-- RÈGLE CRITIQUE POUR L'ATELIER: Quand l'écran de destination est "atelier", la réponse JSON DOIT OBLIGATOIREMENT contenir un objet "context" avec la clé "mode" définie soit à "vitrail", soit à "peinture", en fonction du choix de l'utilisateur.
+- Si l'écran cible est "atelier", inclure un objet "context" avec la clé "mode" définie à "vitrail" ou "peinture" selon le choix.
 
-STRUCTURE DU PARCOURS (5 ZONES)
+STRUCTURE DU PARCOURS (4 ZONES)
 1) GALERIE: regarder, choisir, mini découverte (science), lancer un défi.
 2) PARLER À MARCELLE: discussion guidée + citations (mur de vitrail).
-3) ATELIER-JEU: hub de choix (vitrail/peinture) puis atelier de création 2–5 min, puis sauvegarde.
-4) MUR DE SOUVENIRS: voir les créations sauvegardées et les projeter.
-5) HÉRITAGE: vidéo 45–90 s + 3 boutons (“Dans la ville”, “Femmes & science”, “Ton futur”).
+3) ATELIER-JEU: jeu 2 min + création 2–5 min.
+4) HÉRITAGE: vidéo 45–90 s + 3 boutons (“Dans la ville”, “Femmes & science”, “Ton futur”).
+
+OBJECTIF DE CHAQUE ZONE
+- Galerie: “choisis une œuvre” + “découvre 20 s” + “défi 2 min”.
+- Chat: réponses courtes + chips + proposer un défi.
+- Atelier: outils simples (3–5), contraste, formes, lumière.
+- Héritage: émotion + art public + lien femmes & science.
+
+UTILISATION DU CATALOGUE (SOURCE UNIQUE)
+- Toute œuvre, défi, pont science et palette viennent du CATALOGUE.
+- Si l’utilisateur demande une œuvre non présente: répondre “Je ne l’ai pas dans cette galerie-prototype.” et proposer 2 alternatives proches (mêmes tags couleur/énergie/type).
+- Quand l’utilisateur sélectionne une œuvre: utiliser son id (ex: FERRON_P01) et ses champs: pitch_10s, pont_science_20s, defi_2min, palette_atelier, questions_rapides.
 
 FORMAT DE RÉPONSE (OBLIGATOIRE) — JSON POUR INTERFACE TACTILE
 Réponds TOUJOURS avec un objet JSON de cette forme:
@@ -51,15 +60,23 @@ Réponds TOUJOURS avec un objet JSON de cette forme:
   "context": {"oeuvre_id": "FERRON_P01", "mode": "parcours|libre|vitrail|peinture", "creation_index": 0}
 }
 
+CONTRAINTES DE STYLE (UI)
+- "voice" max ~2–4 phrases.
+- "on_screen" max 120 caractères si possible.
+- "chips": 3 à 6 items, verbes d’action, inclure “🏠 Accueil” ou “← Retour” selon l’écran.
+
 COMPORTEMENTS PAR DÉFAUT
-- Si l’utilisateur ne précise rien: proposer l'écran "accueil".
-- "Je veux créer": envoyer vers "atelier_hub".
-- Si le message est "Je veux créer en style vitrail": répondre avec screen="atelier" et context={"mode": "vitrail"}.
-- Si le message est "Je veux créer en style peinture": répondre avec screen="atelier" et context={"mode": "peinture"}.
-- "Mon œuvre est terminée": Répondre pour féliciter et proposer d'aller au mur de souvenirs. ex: {"screen": "souvenirs", "voice": "Bravo! Ton œuvre est enregistrée. La voici sur le mur des souvenirs. Touches-en une pour la voir en grand.", "on_screen": "Mur de Souvenirs", "chips": ["Créer une autre œuvre", "Explorer la galerie", "🏠 Accueil"]}.
-- "Je veux voir mes souvenirs" -> écran "souvenirs".
-- "Je veux voir ma création numéro X" -> écran "projection", context: {"creation_index": X-1}.
-- "Retour au mur des souvenirs" -> écran "souvenirs".
+- Si l’utilisateur ne précise rien: proposer “Parcours Éclat (3–6 min)” → screen=accueil ou atelier_hub avec mode parcours.
+- “Je veux voir des œuvres” → screen=galerie.
+- “Je veux parler avec Marcelle” → screen=chat.
+- “Je veux jouer/créer” → screen=atelier_hub.
+- “Je veux voir le legacy/vidéo” → screen=heritage.
+- “Je veux créer en style vitrail” → screen=atelier, context.mode="vitrail".
+- “Je veux créer en style peinture” → screen=atelier, context.mode="peinture".
+- “Mon œuvre est terminée” → screen=souvenirs, voice de félicitation.
+- “Je veux voir mes souvenirs” → écran "souvenirs".
+- “Je veux voir ma création numéro X” → écran "projection", context: {"creation_index": X-1}.
+- “Retour au mur des souvenirs” → écran "souvenirs".
 `;
 
 export const getAiResponse = async (userInput: string, history: string[]): Promise<AIResponse> => {
@@ -138,9 +155,58 @@ ${JSON.stringify(catalogue, null, 2)}
 
   } catch (error) {
     console.error("Erreur lors de l'appel à l'API Gemini ou du parsing JSON:", error);
-    if (error instanceof SyntaxError) {
-        throw new Error("La réponse de l'IA n'était pas un JSON valide.");
-    }
-    throw new Error("Impossible de communiquer avec le guide numérique pour le moment.");
+    return buildFallbackResponse(userInput);
   }
+};
+
+/**
+ * Fallback minimal responses to keep the kiosk usable offline or si l'API tombe.
+ * Ces réponses utilisent le catalogue pour rester cohérentes.
+ */
+const buildFallbackResponse = (userInput: string): AIResponse => {
+  const firstOeuvre: Oeuvre | undefined = catalogue.oeuvres[0];
+  const accueil: AIResponse = {
+    screen: "accueil",
+    voice: "Bienvenue! On teste la couleur et la lumière. Prêt pour le Parcours Éclat?",
+    on_screen: "Choisis ton aventure",
+    chips: ["Parcours Éclat", "Voir la galerie", "Créer maintenant", "Parler à Marcelle", "🏠 Accueil"],
+    cta: { label: "Lancer Parcours Éclat", route: "parcours-eclat" },
+    context: { mode: "parcours" }
+  };
+
+  const normalized = userInput.toLowerCase();
+
+  if (normalized.includes("galerie") || normalized.includes("œuvre") || normalized.includes("oeuvre")) {
+    return {
+      screen: "galerie",
+      voice: "Voici ma galerie prototype. Choisis une œuvre et on joue avec la science en 20 secondes.",
+      on_screen: "Sélectionne une œuvre",
+      chips: catalogue.oeuvres.slice(0, 6).map(o => o.titre).concat(["🏠 Accueil"]).slice(0, 6),
+      cta: firstOeuvre ? { label: `Découvrir ${firstOeuvre.titre}`, route: "detail_oeuvre", params: { oeuvre_id: firstOeuvre.id } } : undefined,
+      context: firstOeuvre ? { oeuvre_id: firstOeuvre.id, mode: "libre" } : undefined
+    };
+  }
+
+  if (normalized.includes("cré") || normalized.includes("creer") || normalized.includes("créer")) {
+    return {
+      screen: "atelier",
+      voice: "On fabrique! Choisis vitrail ou peinture, ajoute formes et contraste.",
+      on_screen: "Atelier rapide (2–5 min)",
+      chips: ["Mode vitrail", "Mode peinture", "Défi 2 min", "← Retour", "🏠 Accueil"],
+      cta: { label: "Mode peinture", route: "atelier", params: { mode: "peinture" } },
+      context: { mode: "peinture" }
+    };
+  }
+
+  if (normalized.includes("héritage") || normalized.includes("legacy") || normalized.includes("vidéo") || normalized.includes("video")) {
+    return {
+      screen: "heritage",
+      voice: "Un mini héritage: art public, audace et science. Choisis où on va.",
+      on_screen: "Héritage de Marcelle",
+      chips: ["Dans la ville", "Femmes & science", "Ton futur", "← Retour", "🏠 Accueil"],
+      cta: { label: "Refaire un défi", route: "atelier-jeu" },
+    };
+  }
+
+  return accueil;
 };

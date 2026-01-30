@@ -49,7 +49,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     if (!initialFetchMade.current) {
       initialFetchMade.current = true;
       // Initial message to start the conversation
-      sendMessage("Bonjour, prÃ©sente-toi et propose le Parcours Ã‰clat.");
+      sendMessage("Bonjour, présente-toi et propose le Parcours Éclat.");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run only once on mount
@@ -74,3 +74,4 @@ export const useAppContext = () => {
   }
   return context;
 };
+

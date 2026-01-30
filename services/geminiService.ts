@@ -180,6 +180,28 @@ const buildFallbackResponse = (userInput: string): AIResponse => {
     return accueil;
   }
 
+  if (normalized.includes("vitrail")) {
+    return {
+      screen: "atelier",
+      voice: "On passe en vitrail. Ajoute des formes, déplace-les, et joue avec la lumière.",
+      on_screen: "Atelier vitrail",
+      chips: ["Ajouter carré", "Ajouter cercle", "Lumière", "← Retour", "🏠 Accueil"],
+      cta: { label: "Terminer", route: "souvenirs" },
+      context: { mode: "vitrail" }
+    };
+  }
+
+  if (normalized.includes("peinture")) {
+    return {
+      screen: "atelier",
+      voice: "On passe en peinture. Choisis un pinceau et trace librement.",
+      on_screen: "Atelier peinture",
+      chips: ["Pinceau rond", "Pinceau carré", "Effacer", "← Retour", "🏠 Accueil"],
+      cta: { label: "Terminer", route: "souvenirs" },
+      context: { mode: "peinture" }
+    };
+  }
+
   if ((normalized.includes("oeuvre") || normalized.includes("œuvre")) && (normalized.includes("termin") || normalized.includes("fin"))) {
     return {
       screen: "souvenirs",

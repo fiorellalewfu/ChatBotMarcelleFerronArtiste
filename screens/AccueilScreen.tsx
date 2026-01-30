@@ -59,10 +59,11 @@ const AccueilScreen: React.FC<{ response: AIResponse }> = ({ response }) => {
 
   return (
     <div className="w-full h-full relative overflow-hidden">
+      <div className="absolute inset-0 z-0 bg-[linear-gradient(135deg,#f6f1ea_0%,#f4f7fb_45%,#f7efe6_100%)]"></div>
       <div className="absolute inset-0 z-0">
-        <div className="absolute -top-1/3 -left-1/4 h-2/3 w-2/3 rounded-full bg-[radial-gradient(circle,rgba(255,92,57,0.18),transparent_70%)] animate-pulse"></div>
-        <div className="absolute -bottom-1/4 -right-1/4 h-2/3 w-2/3 rounded-full bg-[radial-gradient(circle,rgba(58,134,255,0.18),transparent_70%)] animate-pulse animation-delay-2000"></div>
-        <div className="absolute top-1/3 right-1/3 h-1/2 w-1/2 rounded-full bg-[radial-gradient(circle,rgba(244,211,94,0.12),transparent_70%)] animate-pulse animation-delay-4000"></div>
+        <div className="absolute -top-1/3 -left-1/4 h-2/3 w-2/3 rounded-full bg-[radial-gradient(circle,rgba(255,92,57,0.22),transparent_70%)] animate-pulse"></div>
+        <div className="absolute -bottom-1/4 -right-1/4 h-2/3 w-2/3 rounded-full bg-[radial-gradient(circle,rgba(58,134,255,0.2),transparent_70%)] animate-pulse animation-delay-2000"></div>
+        <div className="absolute top-1/3 right-1/3 h-1/2 w-1/2 rounded-full bg-[radial-gradient(circle,rgba(244,211,94,0.18),transparent_70%)] animate-pulse animation-delay-4000"></div>
       </div>
 
       <div className="relative z-10 h-full">

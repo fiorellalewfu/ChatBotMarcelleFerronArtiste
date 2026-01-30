@@ -28,10 +28,12 @@ interface PeinturePath {
 
 type DragInfo = {
   elementId: number;
+  pointerId: number;
   startX: number;
   startY: number;
   elementStartX: number;
   elementStartY: number;
+  startTime: number;
 };
 
 const AtelierScreen: React.FC<{ response: AIResponse }> = ({ response }) => {
@@ -48,10 +50,12 @@ const AtelierScreen: React.FC<{ response: AIResponse }> = ({ response }) => {
   const [selectedElementId, setSelectedElementId] = useState<number | null>(null);
   const [brushSize, setBrushSize] = useState(1.6);
   const [brushShape, setBrushShape] = useState<'round' | 'square'>('round');
+  const [lightIntensity, setLightIntensity] = useState(0.65);
 
   const svgRef = useRef<SVGSVGElement>(null);
   const dragInfo = useRef<DragInfo | null>(null);
   const paintingRef = useRef<number | null>(null);
+  const lastTapRef = useRef<{ time: number; x: number; y: number; id: number }>({ time: 0, x: 0, y: 0, id: 0 });
 
   const addVitrailShape = (type: 'rect' | 'circle') => {
     const newShape: VitrailShape = {
@@ -110,15 +114,30 @@ const AtelierScreen: React.FC<{ response: AIResponse }> = ({ response }) => {
 
   const onShapePointerDown = (e: React.PointerEvent, el: VitrailShape) => {
     e.stopPropagation();
+    if (mode === 'vitrail') {
+      const now = Date.now();
+      const last = lastTapRef.current;
+      const { x, y } = getCoordinates(e);
+      const tapDistance = Math.hypot(x - last.x, y - last.y);
+      const isDoubleTap = now - last.time < 320 && tapDistance < 6 && last.id === el.id;
+      lastTapRef.current = { time: now, x, y, id: el.id };
+      if (isDoubleTap) {
+        setSelectedElementId(el.id);
+        moveLayerFor(el.id, 'front');
+        return;
+      }
+    }
     setSelectedElementId(el.id);
     const { x: mouseX, y: mouseY } = getCoordinates(e);
-    (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
+    svgRef.current?.setPointerCapture?.(e.pointerId);
     dragInfo.current = {
       elementId: el.id,
+      pointerId: e.pointerId,
       startX: mouseX,
       startY: mouseY,
       elementStartX: el.x,
       elementStartY: el.y,
+      startTime: Date.now(),
     };
   };
 
@@ -136,7 +155,7 @@ const AtelierScreen: React.FC<{ response: AIResponse }> = ({ response }) => {
       strokeLinecap: brushShape,
       strokeLinejoin: brushShape === 'round' ? 'round' : 'miter',
     };
-    (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
+    svgRef.current?.setPointerCapture?.(e.pointerId);
     paintingRef.current = id;
     setElements(prev => [...prev, newPath]);
   };
@@ -177,9 +196,64 @@ const AtelierScreen: React.FC<{ response: AIResponse }> = ({ response }) => {
     );
   };
 
-  const onCanvasPointerUp = () => {
+  const onCanvasPointerUp = (e: React.PointerEvent) => {
+    const currentDrag = dragInfo.current;
+    if (currentDrag && mode === 'vitrail') {
+      const { x: endX, y: endY } = getCoordinates(e);
+      const dx = endX - currentDrag.startX;
+      const dy = endY - currentDrag.startY;
+      const duration = Date.now() - currentDrag.startTime;
+      const isSwipe = duration < 220 && Math.abs(dx) > 30 && Math.abs(dy) < 12;
+      if (isSwipe) {
+        setElements(prev =>
+          prev.map(el => {
+            if (el.id === currentDrag.elementId && el.type !== 'path') {
+              return { ...el, x: currentDrag.elementStartX, y: currentDrag.elementStartY };
+            }
+            return el;
+          })
+        );
+        if (dx > 0) {
+          moveLayerFor(currentDrag.elementId, 'forward');
+        } else {
+          moveLayerFor(currentDrag.elementId, 'backward');
+        }
+      }
+    }
     dragInfo.current = null;
     paintingRef.current = null;
+  };
+
+  const moveLayerFor = (id: number, direction: 'front' | 'back' | 'forward' | 'backward') => {
+    setElements(prev => {
+      const index = prev.findIndex(el => el.id === id);
+      if (index < 0) return prev;
+      const next = [...prev];
+      if (direction === 'front') {
+        const [item] = next.splice(index, 1);
+        next.push(item);
+        return next;
+      }
+      if (direction === 'back') {
+        const [item] = next.splice(index, 1);
+        next.unshift(item);
+        return next;
+      }
+      if (direction === 'forward' && index < next.length - 1) {
+        [next[index], next[index + 1]] = [next[index + 1], next[index]];
+        return next;
+      }
+      if (direction === 'backward' && index > 0) {
+        [next[index], next[index - 1]] = [next[index - 1], next[index]];
+        return next;
+      }
+      return next;
+    });
+  };
+
+  const moveLayer = (direction: 'front' | 'back' | 'forward' | 'backward') => {
+    if (selectedElementId === null) return;
+    moveLayerFor(selectedElementId, direction);
   };
 
   const isVitrail = mode === 'vitrail';
@@ -225,6 +299,51 @@ const AtelierScreen: React.FC<{ response: AIResponse }> = ({ response }) => {
                     <button onClick={() => addVitrailShape('circle')} className="bg-cyan-600 hover:bg-cyan-500 w-full p-2 rounded-md">Ajouter cercle</button>
                   </div>
                   <button onClick={deleteSelectedElement} disabled={selectedElementId === null} className="bg-red-600 hover:bg-red-500 w-full p-2 rounded-md disabled:bg-gray-600 disabled:cursor-not-allowed">Supprimer la forme</button>
+                  <div className="pt-2">
+                    <p className="text-sm text-gray-300 mb-2">Lumière</p>
+                    <input
+                      type="range"
+                      min="0.35"
+                      max="0.85"
+                      step="0.05"
+                      value={lightIntensity}
+                      onChange={(e) => setLightIntensity(Number(e.target.value))}
+                      className="w-full accent-yellow-400"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => moveLayer('forward')}
+                      disabled={selectedElementId === null}
+                      className="bg-gray-700 hover:bg-gray-600 w-full p-2 rounded-md text-sm disabled:bg-gray-600 disabled:cursor-not-allowed"
+                    >
+                      Monter
+                    </button>
+                    <button
+                      onClick={() => moveLayer('backward')}
+                      disabled={selectedElementId === null}
+                      className="bg-gray-700 hover:bg-gray-600 w-full p-2 rounded-md text-sm disabled:bg-gray-600 disabled:cursor-not-allowed"
+                    >
+                      Descendre
+                    </button>
+                    <button
+                      onClick={() => moveLayer('front')}
+                      disabled={selectedElementId === null}
+                      className="bg-gray-700 hover:bg-gray-600 w-full p-2 rounded-md text-sm disabled:bg-gray-600 disabled:cursor-not-allowed"
+                    >
+                      Tout devant
+                    </button>
+                    <button
+                      onClick={() => moveLayer('back')}
+                      disabled={selectedElementId === null}
+                      className="bg-gray-700 hover:bg-gray-600 w-full p-2 rounded-md text-sm disabled:bg-gray-600 disabled:cursor-not-allowed"
+                    >
+                      Tout derrière
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-400">
+                    Astuces: double-tap pour mettre devant, swipe rapide gauche/droite pour changer de couche.
+                  </p>
                 </div>
               )}
               {mode === 'peinture' && (
@@ -299,10 +418,10 @@ const AtelierScreen: React.FC<{ response: AIResponse }> = ({ response }) => {
                     width={el.width}
                     height={el.height}
                     fill={el.fill}
-                    fillOpacity={isVitrail ? 0.65 : 0.9}
+                    fillOpacity={isVitrail ? lightIntensity : 0.9}
                     stroke={isSelected ? '#FACC15' : '#111827'}
                     strokeWidth={isVitrail ? 0.8 : 0.5}
-                    style={isVitrail ? { filter: 'drop-shadow(0 8px 12px rgba(0,0,0,0.45))' } : undefined}
+                    style={isVitrail ? { filter: 'drop-shadow(0 8px 12px rgba(0,0,0,0.45))', mixBlendMode: 'screen' } : undefined}
                     className="cursor-move"
                   />
                 );
@@ -317,10 +436,10 @@ const AtelierScreen: React.FC<{ response: AIResponse }> = ({ response }) => {
                     cy={el.y + el.height / 2}
                     r={el.width / 2}
                     fill={el.fill}
-                    fillOpacity={isVitrail ? 0.65 : 0.9}
+                    fillOpacity={isVitrail ? lightIntensity : 0.9}
                     stroke={isSelected ? '#FACC15' : '#111827'}
                     strokeWidth={isVitrail ? 0.8 : 0.5}
-                    style={isVitrail ? { filter: 'drop-shadow(0 8px 12px rgba(0,0,0,0.45))' } : undefined}
+                    style={isVitrail ? { filter: 'drop-shadow(0 8px 12px rgba(0,0,0,0.45))', mixBlendMode: 'screen' } : undefined}
                     className="cursor-move"
                   />
                 );

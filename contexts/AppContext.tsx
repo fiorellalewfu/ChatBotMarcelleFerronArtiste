@@ -1,4 +1,5 @@
-import React, { createContext, useState, useEffect, useCallback, ReactNode, useContext, useRef } from 'react';
+
+import React, { createContext, useState, useEffect, useCallback, ReactNode, useContext } from 'react';
 import type { AIResponse } from '../types';
 import { getAiResponse } from '../services/geminiService';
 
@@ -20,7 +21,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [error, setError] = useState<string | null>(null);
   const [history, setHistory] = useState<string[]>([]);
   const [creations, setCreations] = useState<string[]>([]);
-  const initialFetchMade = useRef(false); // Ref to prevent double fetch in StrictMode
 
   const saveCreation = (imageDataUrl: string) => {
     setCreations(prev => [...prev, imageDataUrl]);
@@ -45,12 +45,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   }, [history]);
 
   useEffect(() => {
-    // This check prevents the double API call caused by React.StrictMode in development.
-    if (!initialFetchMade.current) {
-      initialFetchMade.current = true;
-      // Initial message to start the conversation
-      sendMessage("Bonjour, présente-toi et propose le Parcours Éclat.");
-    }
+    // Initial message to start the conversation
+    sendMessage("Bonjour, présente-toi et propose le Parcours Éclat.");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run only once on mount
 

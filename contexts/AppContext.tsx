@@ -2,23 +2,12 @@
 import type { AIResponse } from '../types';
 import { getAiResponse } from '../services/geminiService';
 
-interface ChatMessage {
-  id: string;
-  role: 'user' | 'assistant';
-  text: string;
-}
-
-interface SendMessageOptions {
-  isChat?: boolean;
-}
-
 interface AppContextType {
   aiResponse: AIResponse | null;
   isLoading: boolean;
   error: string | null;
-  sendMessage: (message: string, options?: SendMessageOptions) => void;
+  sendMessage: (message: string) => void;
   history: string[];
-  chatMessages: ChatMessage[];
   creations: string[];
   saveCreation: (imageDataUrl: string) => void;
 }
@@ -55,7 +44,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [history, setHistory] = useState<string[]>([]);
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [creations, setCreations] = useState<string[]>([]);
   const initialFetchMade = useRef(false); // Prevent double fetch in StrictMode
 
@@ -63,11 +51,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setCreations(prev => [...prev, imageDataUrl]);
   };
 
-  const sendMessage = useCallback(async (message: string, options?: SendMessageOptions) => {
+  const sendMessage = useCallback(async (message: string) => {
     setIsLoading(true);
     setError(null);
 
     const newHistory = [...history, `User: ${message}`];
+<<<<<<< HEAD
     const isChat = options?.isChat ?? false;
     const messageId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const screenHint = aiResponse?.screen;
@@ -75,6 +64,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     if (isChat) {
       setChatMessages(prev => [...prev, { id: messageId, role: 'user', text: message }]);
     }
+=======
+>>>>>>> parent of 40f9794 (chat bot area)
 
     try {
       const response = await getAiResponse(message, history, screenHint);
@@ -89,6 +80,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           : response;
       setAiResponse(resolvedResponse);
       setHistory([...newHistory, `AI: ${JSON.stringify(response)}`]);
+<<<<<<< HEAD
       if (isChat || resolvedResponse.screen === 'chat') {
         const responseId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
         setChatMessages(prev => [
@@ -96,6 +88,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           { id: responseId, role: 'assistant', text: resolvedResponse.voice },
         ]);
       }
+=======
+>>>>>>> parent of 40f9794 (chat bot area)
     } catch (e: any) {
       setError(e.message || 'An unknown error occurred.');
       setAiResponse(null); // Clear previous valid response on error
@@ -107,8 +101,16 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   useEffect(() => {
     if (!initialFetchMade.current) {
       initialFetchMade.current = true;
-      // Initial message to start the conversation
-      sendMessage("Hi 😊\nI’m your creative art friend and guide.\n\nToday, I’d love to explore the colorful and bright world of Marcelle Ferron with you.\nA world full of free shapes, movement, and emotions.\n\nHere, there are no right or wrong answers.\nWe look, we imagine, and we feel.\n\nYou can notice the colors, think about how they make you feel,\nand invent your own way of understanding art.\n\nSo tell me…\n✨ What color feels the most like you today?");
+      // Show Accueil immediately so the activity cards are visible on load.
+      setAiResponse({
+        screen: "accueil",
+        voice: "Bienvenue! On teste la couleur et la lumière. Prêt pour le Parcours Éclat?",
+        on_screen: "Choisis ton aventure",
+        chips: ["Parcours Éclat", "Voir la galerie", "Créer maintenant", "Parler à Marcelle", "🏠 Accueil"],
+        cta: { label: "Lancer Parcours Éclat", route: "parcours-eclat" },
+        context: { mode: "parcours" },
+      });
+      setIsLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run only once on mount
@@ -119,7 +121,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     error,
     sendMessage,
     history,
-    chatMessages,
     creations,
     saveCreation,
   };

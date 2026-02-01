@@ -8,7 +8,6 @@ import AccueilScreen from '../screens/AccueilScreen';
 import AtelierHubScreen from '../screens/AtelierHubScreen';
 import SouvenirsScreen from '../screens/SouvenirsScreen';
 import ProjectionScreen from '../screens/ProjectionScreen';
-import ChatScreen from '../screens/ChatScreen';
 
 interface ScreenRouterProps {
   response: AIResponse;
@@ -29,9 +28,8 @@ const ScreenRouter: React.FC<ScreenRouterProps> = ({ response }) => {
       return <SouvenirsScreen response={response} />;
     case 'projection':
       return <ProjectionScreen response={response} />;
-    case 'chat':
-      return <ChatScreen response={response} />;
     case 'detail_oeuvre':
+    case 'chat':
     case 'citations':
     case 'resultat':
     case 'heritage':

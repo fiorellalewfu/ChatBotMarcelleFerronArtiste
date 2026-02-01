@@ -58,6 +58,7 @@ OBJECTIF DE CHAQUE ZONE
 - Atelier: outils simples (3–5), contraste, formes, lumière.
 - Héritage: émotion + art public + lien femmes & science.
 
+<<<<<<< HEAD
 RÈGLES SPÉCIFIQUES — ZONE “PARLER À MARCELLE” (screen=chat)
 - Tu es un guide artistique, pas Marcelle Ferron.
 - Tu racontes son univers comme un voyage poétique et imaginaire, pas comme un cours d'histoire.
@@ -81,6 +82,8 @@ STYLE D'INTERACTION
 - Propose parfois un mini-défi créatif (dessin rapide, imaginer une lumière, décrire une émotion).
 - Il n’y a pas de mauvaise réponse.
 
+=======
+>>>>>>> parent of 40f9794 (chat bot area)
 UTILISATION DU CATALOGUE (SOURCE UNIQUE)
 - Toute œuvre, défi, pont science et palette viennent du CATALOGUE.
 - Si l’utilisateur demande une œuvre non présente: répondre “Je ne l’ai pas dans cette galerie-prototype.” et proposer 2 alternatives proches (mêmes tags couleur/énergie/type).
@@ -98,7 +101,7 @@ Réponds TOUJOURS avec un objet JSON de cette forme:
 }
 
 CONTRAINTES DE STYLE (UI)
-- "voice" max ~2–4 phrases (sauf screen=chat: 5–8 phrases max).
+- "voice" max ~2–4 phrases.
 - "on_screen" max 120 caractères si possible.
 - "chips": 3 à 6 items, verbes d’action, inclure “🏠 Accueil” ou “← Retour” selon l’écran.
 
@@ -221,6 +224,7 @@ const buildFallbackResponse = (userInput: string, screenHint?: string): AIRespon
     return accueil;
   }
 
+<<<<<<< HEAD
   const isChatHint =
     screenHint === "chat" ||
     normalized.includes("enfance") ||
@@ -251,6 +255,8 @@ const buildFallbackResponse = (userInput: string, screenHint?: string): AIRespon
     };
   }
 
+=======
+>>>>>>> parent of 40f9794 (chat bot area)
   if (normalized.includes("vitrail")) {
     return {
       screen: "atelier",

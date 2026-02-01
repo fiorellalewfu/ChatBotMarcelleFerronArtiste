@@ -104,7 +104,11 @@ COMPORTEMENTS PAR DÉFAUT
 - “Retour au mur des souvenirs” → écran "souvenirs".
 `;
 
-export const getAiResponse = async (userInput: string, history: string[]): Promise<AIResponse> => {
+export const getAiResponse = async (
+  userInput: string,
+  history: string[],
+  screenHint?: string
+): Promise<AIResponse> => {
   try {
     const fullPrompt = `========================
 CATALOGUE (DONNÉES)
@@ -180,7 +184,7 @@ ${JSON.stringify(catalogue, null, 2)}
 
   } catch (error) {
     console.error("Erreur lors de l'appel à l'API Gemini ou du parsing JSON:", error);
-    return buildFallbackResponse(userInput);
+    return buildFallbackResponse(userInput, screenHint);
   }
 };
 
@@ -188,7 +192,7 @@ ${JSON.stringify(catalogue, null, 2)}
  * Fallback minimal responses to keep the kiosk usable offline or si l'API tombe.
  * Ces réponses utilisent le catalogue pour rester cohérentes.
  */
-const buildFallbackResponse = (userInput: string): AIResponse => {
+const buildFallbackResponse = (userInput: string, screenHint?: string): AIResponse => {
   const firstOeuvre: Oeuvre | undefined = catalogue.oeuvres[0];
   const accueil: AIResponse = {
     screen: "accueil",
@@ -203,6 +207,26 @@ const buildFallbackResponse = (userInput: string): AIResponse => {
 
   if (normalized.includes("accueil") || normalized.includes("🏠")) {
     return accueil;
+  }
+
+  const isChatHint =
+    screenHint === "chat" ||
+    normalized.includes("enfance") ||
+    normalized.includes("vitrail") ||
+    normalized.includes("peinture") ||
+    normalized.includes("créer") ||
+    normalized.includes("creer") ||
+    normalized.includes("marcelle") ||
+    normalized.includes("artiste");
+
+  if (isChatHint) {
+    return {
+      screen: "chat",
+      voice:
+        "Je peux te raconter une petite partie de ma vie et de mon art. J’aime les couleurs fortes, les gestes libres et la lumière qui change tout. Quand j’étais jeune, je voulais créer à ma façon. Le vitrail m’a fascinée parce que la lumière fait vivre les couleurs. Si tu veux, on peut parler d’un souvenir ou d’une œuvre en particulier.",
+      on_screen: "Dialogue avec Marcelle",
+      chips: ["Mon enfance", "Le vitrail", "Créer librement", "Être artiste", "Conseil pour aujourd'hui", "🏠 Accueil"],
+    };
   }
 
   if (normalized.includes("parler") || normalized.includes("marcelle") || normalized.includes("dialogue")) {

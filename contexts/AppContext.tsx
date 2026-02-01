@@ -45,13 +45,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const newHistory = [...history, `User: ${message}`];
     const isChat = options?.isChat ?? false;
     const messageId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const screenHint = aiResponse?.screen;
 
     if (isChat) {
       setChatMessages(prev => [...prev, { id: messageId, role: 'user', text: message }]);
     }
 
     try {
-      const response = await getAiResponse(message, history);
+      const response = await getAiResponse(message, history, screenHint);
       setAiResponse(response);
       setHistory([...newHistory, `AI: ${JSON.stringify(response)}`]);
       if (isChat || response.screen === 'chat') {
@@ -64,7 +65,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     } finally {
       setIsLoading(false);
     }
-  }, [history]);
+  }, [history, aiResponse]);
 
   useEffect(() => {
     if (!initialFetchMade.current) {

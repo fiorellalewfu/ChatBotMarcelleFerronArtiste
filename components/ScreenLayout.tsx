@@ -42,7 +42,11 @@ const ScreenLayout: React.FC<ScreenLayoutProps> = ({ response, children, hideVoi
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="flex flex-wrap justify-center sm:justify-start gap-3">
                     {chips.map((chip, index) => (
-                    <Chip key={index} label={chip} onClick={() => sendMessage(chip)} />
+                    <Chip
+                      key={index}
+                      label={chip}
+                      onClick={() => sendMessage(chip, response.screen === 'chat' ? { isChat: true } : undefined)}
+                    />
                     ))}
                 </div>
                 {cta && <CtaButton label={cta.label} onClick={() => sendMessage(cta.label)} />}

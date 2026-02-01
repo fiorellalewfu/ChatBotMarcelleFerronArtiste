@@ -108,7 +108,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     if (!initialFetchMade.current) {
       initialFetchMade.current = true;
       // Initial message to start the conversation
-      sendMessage('Bonjour, présente-toi et propose le Parcours Éclat.');
+      sendMessage("Hi 😊\nI’m your creative art friend and guide.\n\nToday, I’d love to explore the colorful and bright world of Marcelle Ferron with you.\nA world full of free shapes, movement, and emotions.\n\nHere, there are no right or wrong answers.\nWe look, we imagine, and we feel.\n\nYou can notice the colors, think about how they make you feel,\nand invent your own way of understanding art.\n\nSo tell me…\n✨ What color feels the most like you today?");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run only once on mount

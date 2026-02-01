@@ -25,6 +25,31 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
+const shouldStayInChat = (message: string) => {
+  const normalized = message.toLowerCase();
+  return !(
+    normalized.includes('accueil') ||
+    normalized.includes('retour') ||
+    normalized.includes('parcours') ||
+    normalized.includes('galerie') ||
+    normalized.includes('atelier') ||
+    normalized.includes('jeu') ||
+    normalized.includes('souvenirs') ||
+    normalized.includes('projection') ||
+    normalized.includes('héritage') ||
+    normalized.includes('heritage')
+  );
+};
+
+const coerceChatResponse = (response: AIResponse): AIResponse => ({
+  ...response,
+  screen: 'chat',
+  on_screen: response.on_screen || 'Dialogue avec Marcelle',
+  chips: response.chips?.length
+    ? response.chips
+    : ["Mon enfance", "Le vitrail", "Créer librement", "Être artiste", "Conseil pour aujourd'hui", "🏠 Accueil"],
+});
+
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [aiResponse, setAiResponse] = useState<AIResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -53,11 +78,23 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     try {
       const response = await getAiResponse(message, history, screenHint);
-      setAiResponse(response);
+      const normalizedMessage = message.toLowerCase();
+      const isHomeChip = normalizedMessage.includes('🏠');
+      const resolvedResponse =
+        screenHint === 'chat' &&
+        response.screen === 'accueil' &&
+        !isHomeChip &&
+        shouldStayInChat(message)
+          ? coerceChatResponse(response)
+          : response;
+      setAiResponse(resolvedResponse);
       setHistory([...newHistory, `AI: ${JSON.stringify(response)}`]);
-      if (isChat || response.screen === 'chat') {
+      if (isChat || resolvedResponse.screen === 'chat') {
         const responseId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-        setChatMessages(prev => [...prev, { id: responseId, role: 'assistant', text: response.voice }]);
+        setChatMessages(prev => [
+          ...prev,
+          { id: responseId, role: 'assistant', text: resolvedResponse.voice },
+        ]);
       }
     } catch (e: any) {
       setError(e.message || 'An unknown error occurred.');

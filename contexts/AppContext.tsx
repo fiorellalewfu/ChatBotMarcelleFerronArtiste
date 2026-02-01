@@ -2,12 +2,23 @@
 import type { AIResponse } from '../types';
 import { getAiResponse } from '../services/geminiService';
 
+interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  text: string;
+}
+
+interface SendMessageOptions {
+  isChat?: boolean;
+}
+
 interface AppContextType {
   aiResponse: AIResponse | null;
   isLoading: boolean;
   error: string | null;
-  sendMessage: (message: string) => void;
+  sendMessage: (message: string, options?: SendMessageOptions) => void;
   history: string[];
+  chatMessages: ChatMessage[];
   creations: string[];
   saveCreation: (imageDataUrl: string) => void;
 }
@@ -19,6 +30,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [history, setHistory] = useState<string[]>([]);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [creations, setCreations] = useState<string[]>([]);
   const initialFetchMade = useRef(false); // Prevent double fetch in StrictMode
 
@@ -26,16 +38,26 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setCreations(prev => [...prev, imageDataUrl]);
   };
 
-  const sendMessage = useCallback(async (message: string) => {
+  const sendMessage = useCallback(async (message: string, options?: SendMessageOptions) => {
     setIsLoading(true);
     setError(null);
 
     const newHistory = [...history, `User: ${message}`];
+    const isChat = options?.isChat ?? false;
+    const messageId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+    if (isChat) {
+      setChatMessages(prev => [...prev, { id: messageId, role: 'user', text: message }]);
+    }
 
     try {
       const response = await getAiResponse(message, history);
       setAiResponse(response);
       setHistory([...newHistory, `AI: ${JSON.stringify(response)}`]);
+      if (isChat || response.screen === 'chat') {
+        const responseId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+        setChatMessages(prev => [...prev, { id: responseId, role: 'assistant', text: response.voice }]);
+      }
     } catch (e: any) {
       setError(e.message || 'An unknown error occurred.');
       setAiResponse(null); // Clear previous valid response on error
@@ -59,6 +81,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     error,
     sendMessage,
     history,
+    chatMessages,
     creations,
     saveCreation,
   };
